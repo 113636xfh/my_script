@@ -17,12 +17,12 @@ from email.mime.application import MIMEApplication
 
 
 
-sender = ''
-reciever = ['']
+sender = '' #发件人邮箱
+reciever = [''] #接受人邮箱
 
-mail_host = 'pop.qq.com'
-mail_user = ''
-mail_pass = ''
+mail_host = 'pop.qq.com' #邮件服务器
+mail_user = '' #发件人
+mail_pass = '' #通行码
 subject = 'ubuntu文件'
 text = '这是来自ubuntu的文件'
 dirname = './send'
