@@ -10,6 +10,8 @@ import socket
 import os
 import time
 import sys
+import threading
+from queue import Queue
 
 class Udp_send:
     def __init__(self,target):
@@ -77,27 +79,60 @@ def mk_files(path):
     for f in file_list:
         with open(f,'rb') as byte_f:
             #print(type(byte_f.read()))
-            yield byte_f.read()          
+            yield byte_f.read()  
+        #os.remove(f) #把发过的文件删除
 
-def main():
+def main_udp(target):
     '''
     调用前面封装的类，发送
+    开始运行后，只要有文件放入，便开始发送
 
     Returns
     -------
     None.
 
     '''
-    target = ('127.0.0.1', 1202)    #要发送的地址
-    udp_send = Udp_send(target)
-    for f in mk_files('new'):    #要发送文件的保存路径
-        udp_send.main(f)
-    #udp_send.close()
-        
-if __name__ == '__main__':
     i = 0
+    udp_send = Udp_send(target)
     while True:
-        i += 1
-        print(i)
-        time.sleep(0.001)
-        main()
+        time.sleep(0.02)
+        for f in mk_files('new'):    #要发送文件的保存路径
+            udp_send.main(f)
+            i += 1
+            print(i)
+        #udp_send.close()
+        
+def main_tcp(target, update):
+    '''
+    调用前面封装的类，发送
+
+    Parameters
+    ----------
+    target : tuple
+        地址
+
+    Returns
+    -------
+    None.
+
+    '''
+    ViewPara_flag = update.get()
+    if ViewPara_flag != None:
+        tcp_send = Tcp_send(target)
+        tcp_send(ViewPara_flag)
+        print(ViewPara_flag,'已发送')
+                
+if __name__ == '__main__':
+    update = Queue()
+    target_udp = ('127.0.0.1', 1202)    #要发送的地址
+    target_tcp = ('127.0.0.1', 1203) 
+    ViewPara_flag = 1234     #要用tcp发送的变量
+    update.put(ViewPara_flag) #更新变量
+    p_udp = threading.Thread(target = main_udp, args = (target_udp,))
+    p_tcp = threading.Thread(target = main_tcp, args = (target_tcp, update))
+       
+    p_udp.start()
+    p_tcp.start()
+    p_udp.join()
+    p_tcp.join()
+    
